@@ -13,15 +13,47 @@ int output_to_file(FILE* file, Sudoku s){
 
 int load_from_file(FILE* file, Sudoku * s){
     char tmp[20];
+    int cnt = 0;
     for(int line = 0; line < 9; line++){
         for(int num = 0; num < 9; num++){
             int tmp;
             if(fscanf(file, "%d", &tmp) !=0) return 1;
             if(tmp > 9 || tmp < 0) return 1;
+            if(tmp) cnt++;
             s->sudoku[line][num] = tmp;
         }
     }
+    s->filled = cnt;
     return 0;
+}
+int check_sudoku(Sudoku* s){
+    // check line
+    for(int i = 0; i < 9; i++){
+        char check[10] = {0};
+        for(int j = 0; j < 9; j++){
+            if(s->sudoku[i][j] == 0) continue;
+            if(check[s->sudoku[i][j]]) return 0;
+            else s->sudoku[i][j] = 1;
+        }
+    }
+    // check column
+    for(int j = 0; j < 9; j++){
+        char check[10] = {0};
+        for(int i = 0; i < 9; i++){
+            if(s->sudoku[i][j] == 0) continue;
+            if(check[s->sudoku[i][j]]) return 0;
+            else s->sudoku[i][j] = 1;
+        }
+    }
+    for(int block_i = 0; block_i < 3; block_i++) for(int block_j = 0; block_j < 3; block_j++){
+        char check[9] = {0};
+        for(int i = 0; i < 3; i++) for(int j = 0; j < 3; j++){
+            if(s->sudoku[block_i*3 + i][block_j*3 + j] == 0) continue;
+            if(check[s->sudoku[block_i*3+i][block_j*3+j]]) return 0;
+            else check[s->sudoku[block_i*3+i][block_j*3+j]] = 1;
+        }
+    }
+    return 1;
 }
 
 Sudoku generate_sudoku(){
@@ -109,36 +141,6 @@ Sudoku generate_sudoku(){
     return rt;
 }
 
-int check_sudoku(Sudoku* s){
-    // check line
-    for(int i = 0; i < 9; i++){
-        char check[10] = {0};
-        for(int j = 0; j < 9; j++){
-            if(s->sudoku[i][j] == 0) continue;
-            if(check[s->sudoku[i][j]]) return 0;
-            else s->sudoku[i][j] = 1;
-        }
-    }
-    // check column
-    for(int j = 0; j < 9; j++){
-        char check[10] = {0};
-        for(int i = 0; i < 9; i++){
-            if(s->sudoku[i][j] == 0) continue;
-            if(check[s->sudoku[i][j]]) return 0;
-            else s->sudoku[i][j] = 1;
-        }
-    }
-    for(int block_i = 0; block_i < 3; block_i++) for(int block_j = 0; block_j < 3; block_j++){
-        char check[9] = {0};
-        for(int i = 0; i < 3; i++) for(int j = 0; j < 3; j++){
-            if(s->sudoku[block_i*3 + i][block_j*3 + j] == 0) continue;
-            if(check[s->sudoku[block_i*3+i][block_j*3+j]]) return 0;
-            else check[s->sudoku[block_i*3+i][block_j*3+j]] = 1;
-        }
-    }
-    return 1;
-}
-
 int check_one(Sudoku *s, int pt_i, int pt_j){
     char check[9] = {0};
     for(int j = 0; j < 9; j++){
@@ -162,3 +164,4 @@ int check_one(Sudoku *s, int pt_i, int pt_j){
     }
     return 1;
 }
+

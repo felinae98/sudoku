@@ -5,7 +5,7 @@
 #include<time.h>
 
 int main(int argc, char* argv[]){
-    srand(time(NULL));
+    srand(time(0));
     if(argc == 1){
         //GG
         printf("usage:");
