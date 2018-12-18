@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include "sudoku_struct.h"
+int _sudoku_solve = 0;
 
 int output_to_file(FILE* file, Sudoku s){
     for(int i = 0; i < 9; i++){
@@ -17,7 +18,7 @@ int load_from_file(FILE* file, Sudoku * s){
     for(int line = 0; line < 9; line++){
         for(int num = 0; num < 9; num++){
             int tmp;
-            if(fscanf(file, "%d", &tmp) !=0) return 1;
+            if(fscanf(file, "%d", &tmp) !=1) return 1;
             if(tmp > 9 || tmp < 0) return 1;
             if(tmp) cnt++;
             s->sudoku[line][num] = tmp;
@@ -33,7 +34,7 @@ int check_sudoku(Sudoku* s){
         for(int j = 0; j < 9; j++){
             if(s->sudoku[i][j] == 0) continue;
             if(check[s->sudoku[i][j]]) return 0;
-            else s->sudoku[i][j] = 1;
+            else check[s->sudoku[i][j]] = 1;
         }
     }
     // check column
@@ -42,7 +43,7 @@ int check_sudoku(Sudoku* s){
         for(int i = 0; i < 9; i++){
             if(s->sudoku[i][j] == 0) continue;
             if(check[s->sudoku[i][j]]) return 0;
-            else s->sudoku[i][j] = 1;
+            else check[s->sudoku[i][j]] = 1;
         }
     }
     for(int block_i = 0; block_i < 3; block_i++) for(int block_j = 0; block_j < 3; block_j++){
@@ -142,22 +143,22 @@ Sudoku generate_sudoku(){
 }
 
 int check_one(Sudoku *s, int pt_i, int pt_j){
-    char check[9] = {0};
-    for(int j = 0; j < 9; j++){
+    char check[10] = {0};
+    for(int j = 0; j < 10; j++){
         if(s->sudoku[pt_i][j] == 0) continue;
         if(check[s->sudoku[pt_i][j]]) return 0;
         else check[s->sudoku[pt_i][j]] = 1;
     }
-    for(int i = 0; i < 9; i++) check[i] = 0;
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 10; i++) check[i] = 0;
+    for(int i = 0; i < 10; i++){
         if(s->sudoku[i][pt_j] == 0) continue;
         if(check[s->sudoku[i][pt_j]]) return 0;
         else check[s->sudoku[i][pt_j]] = 1;
     }
-    for(int i = 0; i < 9; i++) check[i] = 0;
+    for(int i = 0; i < 10; i++) check[i] = 0;
     int block_i = pt_i / 3;
     int block_j = pt_j / 3;
-    for(int i = block_i; i < block_i + 3; i++) for(int j = block_j; j < block_j + 3; j++){
+    for(int i = block_i*3; i < block_i*3 + 3; i++) for(int j = block_j*3; j < block_j*3 + 3; j++){
         if(s->sudoku[i][j] == 0) continue;
         if(check[s->sudoku[i][j]]) return 0;
         else check[s->sudoku[i][j]] = 1;
@@ -165,3 +166,122 @@ int check_one(Sudoku *s, int pt_i, int pt_j){
     return 1;
 }
 
+int max_fill(Sudoku * s, int x[], int y[]){
+    int fill_cnt = 0;
+    int flag = 0;
+    do{
+        //fill line
+        flag = 0;
+        for(int i = 0; i < 9; i++){
+            int sum = 0, cnt = 0, emp_pos;
+            for(int j = 0; j < 9; j++){
+                if(s->sudoku[i][j]){
+                    sum += s->sudoku[i][j];
+                    cnt ++;
+                }
+                else emp_pos = j;
+            }
+            if(cnt == 8){
+                s->sudoku[i][emp_pos] = 45 - sum;
+                flag = 1;
+                x[fill_cnt] = i;
+                y[fill_cnt] = emp_pos;
+                fill_cnt++;
+            }
+        }
+        for(int j = 0; j < 9; j++){
+            int sum = 0, cnt = 0, emp_pos;
+            for(int i = 0; i < 9; i++){
+                if(s->sudoku[i][j]){
+                    sum += s->sudoku[i][j];
+                    cnt ++;
+                }
+                else emp_pos = i;
+            }
+            if(cnt == 8){
+                s->sudoku[emp_pos][j] = 45 - sum;
+                flag = 1;
+                x[fill_cnt] = emp_pos;
+                y[fill_cnt] = j;
+                fill_cnt++;
+            }
+        }
+        for(int block_i = 0; block_i < 3; block_i++) for(int block_j = 0; block_j < 3; block_j++){
+            int sum = 0, cnt = 0, emp_pos_x, emp_pos_y;
+            for(int i = block_i*3; i < block_i*3 +3; i++) for(int j = block_j*3;j < block_j*3 + 3; j++){
+                if(s->sudoku[i][j]){
+                    sum += s->sudoku[i][j];
+                    cnt++;
+                }
+                else{
+                    emp_pos_x = i;
+                    emp_pos_y = j;
+                }
+            }
+            if(cnt == 8){
+                s->sudoku[emp_pos_x][emp_pos_y] = 45-sum;
+                flag = 1;
+                x[fill_cnt] = emp_pos_x;
+                y[fill_cnt] = emp_pos_y;
+                fill_cnt++;
+            }
+        }
+    }while(flag);
+    return fill_cnt;
+}
+
+void print_sudoku(Sudoku * s){
+    for(int i = 0; i < 9; i ++){
+        for(int j = 0; j < 9; j++)
+            printf(j == 8 ? "%d\n" : "%d ", s->sudoku[i][j]);
+    }
+}
+
+void _find_empty(Sudoku * s, int * i, int * j){
+    for(*i = 0; *i < 9; (*i)++) for(*j = 0; *j < 9; (*j)++)
+        if(s->sudoku[*i][*j] == 0) return;
+}
+
+void solve_traceback(Sudoku * s){
+    if(_sudoku_solve) return;
+    if(s->filled == 81){
+        _sudoku_solve = 1;
+        print_sudoku(s);
+        return;
+    }
+    //int fill_x[30], fill_y[30];
+    //int fill_num = max_fill(s, fill_x, fill_y);
+    //s->filled += fill_num;
+    //print_sudoku(s);
+    //printf("solve: %d\n", s->filled);
+    //putchar('\n');
+    if(s->filled == 81){
+        _sudoku_solve = 1;
+        return;
+    }
+    //find the empty point
+    int i, j = 0;
+    _find_empty(s, &i, &j);
+    s->filled++;
+    for(int num = 1; num < 10; num++){
+        int flag = 1;
+        for(int _i = 0; _i < 9; _i++)
+            if(s->sudoku[_i][j] == num) flag = 0;
+        for(int _j = 0; _j < 9; _j++)
+            if(s->sudoku[i][_j] == num) flag = 0;
+        int block_i = i / 3 * 3, block_j = j / 3 * 3;
+        for(int _i = block_i; _i < block_i + 3; _i++)
+            for(int _j = block_j; _j < block_j + 3; _j++)
+                if(s->sudoku[_i][_j] == num) flag = 0;
+        if(flag){
+            s->sudoku[i][j] = num;
+            solve_traceback(s);
+        }
+    }
+    //traceback
+    s->filled--;
+    //s->filled -= fill_num;
+    s->sudoku[i][j] = 0;
+    //for(i = 0; i < fill_num; i++)
+    //    s->sudoku[fill_x[i]][fill_y[i]] = 0;
+}

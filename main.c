@@ -4,6 +4,8 @@
 #include<stdlib.h>
 #include<time.h>
 
+extern int _sudoku_solve;
+
 int main(int argc, char* argv[]){
     srand(time(0));
     if(argc == 1){
@@ -32,6 +34,20 @@ int main(int argc, char* argv[]){
     }
     else if(argc == 3 && !strcmp("-s", argv[1])){
         //solve
+        FILE* file = fopen(argv[2], "r");
+        if(!file){
+            printf("can't open file %s", argv[2]);
+            return 1;
+        }
+        Sudoku s;
+        int res = load_from_file(file, &s);
+        if(res){
+            puts("sudoku format error");
+            return 1;
+        }
+        _sudoku_solve = 0;
+        solve_traceback(&s);
+        //print_sudoku(&s);
     }
     return 0;
 }
