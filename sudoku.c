@@ -142,34 +142,23 @@ Sudoku generate_sudoku(){
     return rt;
 }
 
-int check_one(Sudoku *s, int pt_i, int pt_j){
-    char check[10] = {0};
-    for(int j = 0; j < 10; j++){
-        if(s->sudoku[pt_i][j] == 0) continue;
-        if(check[s->sudoku[pt_i][j]]) return 0;
-        else check[s->sudoku[pt_i][j]] = 1;
-    }
-    for(int i = 0; i < 10; i++) check[i] = 0;
-    for(int i = 0; i < 10; i++){
-        if(s->sudoku[i][pt_j] == 0) continue;
-        if(check[s->sudoku[i][pt_j]]) return 0;
-        else check[s->sudoku[i][pt_j]] = 1;
-    }
-    for(int i = 0; i < 10; i++) check[i] = 0;
-    int block_i = pt_i / 3;
-    int block_j = pt_j / 3;
-    for(int i = block_i*3; i < block_i*3 + 3; i++) for(int j = block_j*3; j < block_j*3 + 3; j++){
-        if(s->sudoku[i][j] == 0) continue;
-        if(check[s->sudoku[i][j]]) return 0;
-        else check[s->sudoku[i][j]] = 1;
-    }
-    return 1;
+int check_one(Sudoku * s, int i, int j, int num){
+    int flag = 1;
+    for(int _i = 0; _i < 9; _i++)
+        if(s->sudoku[_i][j] == num) flag = 0;
+    for(int _j = 0; _j < 9; _j++)
+        if(s->sudoku[i][_j] == num) flag = 0;
+    int block_i = i / 3 * 3, block_j = j / 3 * 3;
+    for(int _i = block_i; _i < block_i + 3; _i++)
+        for(int _j = block_j; _j < block_j + 3; _j++)
+            if(s->sudoku[_i][_j] == num) flag = 0;
+    return flag;
 }
 
 int max_fill(Sudoku * s, int x[], int y[]){
     int fill_cnt = 0;
     int flag = 0;
-    do{
+    while(s->filled < 81){
         //fill line
         flag = 0;
         for(int i = 0; i < 9; i++){
@@ -182,13 +171,17 @@ int max_fill(Sudoku * s, int x[], int y[]){
                 else emp_pos = j;
             }
             if(cnt == 8){
-                s->sudoku[i][emp_pos] = 45 - sum;
+                int to_fill = 45 - sum;
+                if(!check_one(s, i, emp_pos, to_fill)) return -fill_cnt;
+                s->sudoku[i][emp_pos] = to_fill;
                 flag = 1;
                 x[fill_cnt] = i;
                 y[fill_cnt] = emp_pos;
                 fill_cnt++;
+                s->filled++;
             }
         }
+        if(flag) break;
         for(int j = 0; j < 9; j++){
             int sum = 0, cnt = 0, emp_pos;
             for(int i = 0; i < 9; i++){
@@ -199,13 +192,17 @@ int max_fill(Sudoku * s, int x[], int y[]){
                 else emp_pos = i;
             }
             if(cnt == 8){
-                s->sudoku[emp_pos][j] = 45 - sum;
+                int to_fill=  45 - sum;
+                if(!check_one(s, emp_pos, j, to_fill)) return -fill_cnt; 
+                s->sudoku[emp_pos][j] = to_fill;
                 flag = 1;
                 x[fill_cnt] = emp_pos;
                 y[fill_cnt] = j;
                 fill_cnt++;
+                s->filled++;
             }
         }
+        if(flag) break;
         for(int block_i = 0; block_i < 3; block_i++) for(int block_j = 0; block_j < 3; block_j++){
             int sum = 0, cnt = 0, emp_pos_x, emp_pos_y;
             for(int i = block_i*3; i < block_i*3 +3; i++) for(int j = block_j*3;j < block_j*3 + 3; j++){
@@ -219,14 +216,18 @@ int max_fill(Sudoku * s, int x[], int y[]){
                 }
             }
             if(cnt == 8){
-                s->sudoku[emp_pos_x][emp_pos_y] = 45-sum;
+                int to_fill = 45 - sum;
+                if(!check_one(s, emp_pos_x, emp_pos_y, to_fill)) return -fill_cnt;
+                s->sudoku[emp_pos_x][emp_pos_y] = to_fill;
                 flag = 1;
                 x[fill_cnt] = emp_pos_x;
                 y[fill_cnt] = emp_pos_y;
                 fill_cnt++;
+                s->filled++;
             }
         }
-    }while(flag);
+        if(!flag) break;
+    }
     return fill_cnt;
 }
 
@@ -249,8 +250,17 @@ void solve_traceback(Sudoku * s){
         print_sudoku(s);
         return;
     }
+    //print_sudoku(s);
+    //printf("solve: %d\n", s->filled);
+    //putchar('\n');
     //int fill_x[30], fill_y[30];
     //int fill_num = max_fill(s, fill_x, fill_y);
+    //if(fill_num < 0){
+    //    //traceback
+    //    for(int i = 0; i < fill_num; i++)
+    //        s->sudoku[fill_x[i]][fill_y[i]] = 0;
+    //    return;
+    //}
     //s->filled += fill_num;
     //print_sudoku(s);
     //printf("solve: %d\n", s->filled);
@@ -264,15 +274,7 @@ void solve_traceback(Sudoku * s){
     _find_empty(s, &i, &j);
     s->filled++;
     for(int num = 1; num < 10; num++){
-        int flag = 1;
-        for(int _i = 0; _i < 9; _i++)
-            if(s->sudoku[_i][j] == num) flag = 0;
-        for(int _j = 0; _j < 9; _j++)
-            if(s->sudoku[i][_j] == num) flag = 0;
-        int block_i = i / 3 * 3, block_j = j / 3 * 3;
-        for(int _i = block_i; _i < block_i + 3; _i++)
-            for(int _j = block_j; _j < block_j + 3; _j++)
-                if(s->sudoku[_i][_j] == num) flag = 0;
+        int flag = check_one(s, i, j, num);
         if(flag){
             s->sudoku[i][j] = num;
             solve_traceback(s);
