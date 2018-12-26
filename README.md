@@ -36,6 +36,6 @@ and the output will be:
 * generate 1000000 final layouts
     * `12.81s user 0.35s system 99% cpu 13.183 total`
 * generate 1 final layouts
-    * `user 0.08s system 97% cpu 0.079 total`
+    * `0.00s user 0.08s system 97% cpu 0.079 total`
 * solve the example problem
     * `0.24s user 0.00s system 99% cpu 0.240 total` 
