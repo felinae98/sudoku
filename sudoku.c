@@ -258,16 +258,16 @@ void solve_traceback(Sudoku * s){
     //print_sudoku(s);
     //printf("solve: %d\n", s->filled);
     //putchar('\n');
-    int fill_x[30], fill_y[30];
-    int fill_num = max_fill(s, fill_x, fill_y);
-    if(fill_num < 0){
-        //traceback
-        s->filled += fill_num;
-        for(int i = 0; i < fill_num; i++)
-            s->sudoku[fill_x[i]][fill_y[i]] = 0;
-        return;
-    }
-    s->filled += fill_num;
+    //int fill_x[30], fill_y[30];
+    //int fill_num = max_fill(s, fill_x, fill_y);
+    //if(fill_num < 0){
+    //    //traceback
+    //    s->filled += fill_num;
+    //    for(int i = 0; i < fill_num; i++)
+    //        s->sudoku[fill_x[i]][fill_y[i]] = 0;
+    //    return;
+    //}
+    //s->filled += fill_num;
     //print_sudoku(s);
     //printf("solve: %d\n", s->filled);
     //putchar('\n');
@@ -288,8 +288,8 @@ void solve_traceback(Sudoku * s){
     }
     //traceback
     s->filled--;
-    s->filled -= fill_num;
+    //s->filled -= fill_num;
     s->sudoku[i][j] = 0;
-    for(i = 0; i < fill_num; i++)
-        s->sudoku[fill_x[i]][fill_y[i]] = 0;
+    //for(i = 0; i < fill_num; i++)
+    //    s->sudoku[fill_x[i]][fill_y[i]] = 0;
 }
