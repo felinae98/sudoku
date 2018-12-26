@@ -39,15 +39,21 @@ int main(int argc, char* argv[]){
             printf("can't open file %s", argv[2]);
             return 1;
         }
-        Sudoku s;
-        int res = load_from_file(file, &s);
-        if(res){
-            puts("sudoku format error");
-            return 1;
+        int flag = 0;
+        while(1){
+            Sudoku s;
+            int res = load_from_file(file, &s);
+            if(res){
+                break;
+            }
+            if(!flag){
+                flag = 1;
+            }
+            else putchar('\n');
+            _sudoku_solve = 0;
+            solve_traceback(&s);
+            //print_sudoku(&s);
         }
-        _sudoku_solve = 0;
-        solve_traceback(&s);
-        //print_sudoku(&s);
     }
     return 0;
 }
